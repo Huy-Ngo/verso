@@ -107,11 +107,11 @@ jobs:
         run: |
           cargo check
 
-      # - name: Test
-      #   # Run sway(wayland compositor) in the background, winit will use it
-      #   run: |
-      #     sway > /dev/null 2>&1 &
-      #     cargo test --release
+      - name: Test
+        # Run sway(wayland compositor) in the background, winit will use it
+        run: |
+          sway > /dev/null 2>&1 &
+          cargo test --release
 
       - name: Fetch Verso version
         if: ${{ github.event_name == 'schedule' }}

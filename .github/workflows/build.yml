@@ -133,7 +133,6 @@ jobs:
           cache-key: flatpak-builder-${{ github.sha }}
 
       - name: Upload artifact
-        if: ${{ github.event_name == 'schedule' }}
         uses: actions/upload-artifact@v4
         with:
           name: verso_${{ env.VERSO_VERSION }}_x64_flatpak
@@ -158,7 +157,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install scroop
+      - name: Install scoop
         uses: MinoruSekine/setup-scoop@v3
 
       - name: Install dependencies
@@ -192,7 +191,6 @@ jobs:
           echo "VERSO_VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "verso") | .version')" >> $Env:GITHUB_ENV
 
       - name: Upload artifact
-        if: ${{ github.event_name == 'schedule' }}
         uses: actions/upload-artifact@v4
         with:
           name: verso_${{ env.VERSO_VERSION }}_x64_nsis
@@ -263,7 +261,6 @@ jobs:
           echo "VERSO_VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "verso") | .version')" >> $GITHUB_ENV
 
       - name: Upload artifact
-        if: ${{ github.event_name == 'schedule' }}
         uses: actions/upload-artifact@v4
         with:
           name: verso_${{ env.VERSO_VERSION }}_${{ matrix.platform.arch }}_dmg
@@ -281,53 +278,3 @@ jobs:
       - name: Failure
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1
-
-  release-nightly:
-    if: ${{ github.event_name == 'schedule' }}
-    runs-on: ubuntu-latest
-    needs: ['build-macos', 'build-windows', 'build-linux']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-
-      - name: Fetch Verso version
-        run: |
-          echo "VERSO_VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "verso") | .version')" >> $GITHUB_ENV
-          echo "VERSO_RELEASE_NAME=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "verso") | .version')-$(date '+%Y%m%d')-nightly" >> $GITHUB_ENV
-
-      - name: Draft release
-        uses: crabnebula-dev/cloud-release@v0.1.0
-        id: draft
-        with:
-          command: release draft ${{ env.CN_APP_SLUG }} $VERSO_RELEASE_NAME
-          api-key: ${{ secrets.CN_API_KEY }}
-
-      - name: Upload macOS DMG bundle (ARM)
-        uses: crabnebula-dev/cloud-release@v0.1.0
-        with:
-          command: release upload --file "verso_${{ env.VERSO_VERSION }}_aarch64_dmg/verso_${{ env.VERSO_VERSION }}_aarch64.dmg" ${{ env.CN_APP_SLUG }} $VERSO_RELEASE_NAME
-          api-key: ${{ secrets.CN_API_KEY }}
-
-      - name: Upload macOS DMG bundle (Intel)
-        uses: crabnebula-dev/cloud-release@v0.1.0
-        with:
-          command: release upload --file "verso_${{ env.VERSO_VERSION }}_x64_dmg/verso_${{ env.VERSO_VERSION }}_x64.dmg" ${{ env.CN_APP_SLUG }} $VERSO_RELEASE_NAME
-          api-key: ${{ secrets.CN_API_KEY }}
-
-      - name: Upload Windows NSIS installer
-        uses: crabnebula-dev/cloud-release@v0.1.0
-        with:
-          command: release upload --file "verso_${{ env.VERSO_VERSION }}_x64_nsis/verso_${{ env.VERSO_VERSION }}_x64-setup.exe" ${{ env.CN_APP_SLUG }} $VERSO_RELEASE_NAME
-          api-key: ${{ secrets.CN_API_KEY }}
-
-      - name: Upload Flatpak bundle
-        uses: crabnebula-dev/cloud-release@v0.1.0
-        with:
-          command: release upload --file "verso_${{ env.VERSO_VERSION }}_x64_flatpak/verso_${{ env.VERSO_VERSION }}_x64.flatpak" ${{ env.CN_APP_SLUG }} $VERSO_RELEASE_NAME
-          api-key: ${{ secrets.CN_API_KEY }}
-
-      - name: Publish release
-        uses: crabnebula-dev/cloud-release@v0.1.0
-        with:
-          command: release publish ${{ env.CN_APP_SLUG }} $VERSO_RELEASE_NAME
-          api-key: ${{ secrets.CN_API_KEY }}

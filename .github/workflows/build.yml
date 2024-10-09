@@ -177,6 +177,7 @@ jobs:
       - name: Build
         run: |
           cargo build --release
+          dir target\release
 
       # - name: Test
       #   run: |
@@ -244,6 +245,7 @@ jobs:
           export PATH="/Library/Frameworks/GStreamer.framework/Versions/1.0/bin${PATH:+:$PATH}"
           export DYLD_LIBRARY_PATH="/Library/Frameworks/GStreamer.framework/Versions/1.0/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
           cargo build --release
+          ls target/release
 
       # - name: Test
       #   run: |

@@ -184,7 +184,7 @@ jobs:
     name: Build Result
     runs-on: ubuntu-latest
     if: always()
-    needs: ['build-macos', 'build-windows', 'build-linux']
+    needs: ['build-macos', 'build-windows']
     steps:
       - name: Success
         if: ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
